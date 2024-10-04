@@ -1,4 +1,4 @@
-<h1>{% if post %}Edit Post{% else %}Create New Post{% endif %}</h1>
+<h1>{% if post %}Edit Post{% else %}Create New Post {% endif %}</h1>
 <form method="POST">
     {% csrf_token %}
     {{ form.as_p }}

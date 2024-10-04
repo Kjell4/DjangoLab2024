@@ -1,28 +1,39 @@
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import redirect
-from .models import Follow, User                    #?
+from .models import Follow, User, Profile
 from .forms import ProfileForm
+from django.contrib.auth.views import LoginView
+from django.views.decorators.csrf import csrf_exempt
 
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('login')
     else:
         form = UserCreationForm()
     return render(request, 'users/register.html', {'form': form})
 
 def profile_detail(request, username):
     user = get_object_or_404(User, username=username)
-    profile = user.profile
-    return render(request, 'users/profile.html', {'profile': profile})
+    profile, created = Profile.objects.get_or_create(user=user)
 
-from .forms import ProfileForm
+    if request.method == 'POST':
+        if request.user == user:
+            form = ProfileForm(request.POST, request.FILES, instance=profile)
+            if form.is_valid():
+                form.save()
+                return redirect('profile_detail', username=user.username)
+    else:
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'users/profile.html', {'profile': profile, 'form': form})
+
+
 
 def edit_profile(request):
-    profile = request.user.profile
+    profile = get_object_or_404(Profile, user=request.user)  # Get the profile of the currently logged-in user
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
@@ -31,8 +42,6 @@ def edit_profile(request):
     else:
         form = ProfileForm(instance=profile)
     return render(request, 'users/edit_profile.html', {'form': form})
-
-from .models import Follow
 
 def follow_user(request, username):
     user_to_follow = get_object_or_404(User, username=username)
@@ -44,3 +53,21 @@ def unfollow_user(request, username):
     user_to_unfollow = get_object_or_404(User, username=username)
     Follow.objects.filter(follower=request.user, following=user_to_unfollow).delete()
     return redirect('profile_detail', username=username)
+
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('profile_detail', username=user.username)
+    else:
+        form = AuthenticationForm()
+    return render(request, 'users/login.html', {'form': form})
+
