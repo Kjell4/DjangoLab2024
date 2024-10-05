@@ -1,34 +1,87 @@
-{% block title %}Profile of {{ profile.user.username }}{% endblock %}
-
 {% block content %}
 <div class="container">
-    <h2>{{ profile.user.username }}'s Profile</h2>
+    <h2 id="owner">{{ profile.user.username }}'s Profile</h2>
     
     <div class="profile-info">
-        <img src="{{ user.profile.profile_picture }}" alt="{{ profile.user.username }}" class="profile-pic" style="width:150px;height:150px;">
-        
-        <p><strong>Bio:</strong> {{ profile.user.bio }}</p>
-        
-        {% if user != request.user %}
+        {% if profile.profile_picture %}
+        <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user.username }}" class="profile-pic" style="width:200px;height:200px;">
+    {% else %}
+        <p>No profile picture available.</p>
+    {% endif %}
+    
+        <p><strong>Bio:</strong> {{ profile.bio }}</p>
+    
+        <p><strong>Followers:</strong> {{ followers_count }}</p>
+        <p><strong>Following:</strong> {{ following_count }}</p>
+
+        <h3>Followers List</h3>
+        <ul>
+            {% for follower in followers_list %}
+                <a id="follower-url" href="{% url 'profile_detail' follower.username %}">{{ follower.username }}</a>
+            {% empty %}
+                <li>No followers yet.</li>
+            {% endfor %}
+        </ul>
+    
+        {% if profile.user != request.user %}
             {% if is_following %}
-                <form method="POST" action="{% url 'unfollow_user' profile.username %}">
+                <form method="POST" action="{% url 'unfollow_user' profile.user.username %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Unfollow</button>
+                    <button type="submit" class="follow_btn">Unfollow</button>
                 </form>
             {% else %}
-                <form method="POST" action="{% url 'follow_user' user.username %}">
+                <form method="POST" action="{% url 'follow_user' profile.user.username %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-primary">Follow</button>
+                    <button type="submit" class="follow_btn">Follow</button>
                 </form>
             {% endif %}
         {% else %}
-            <a href="{% url 'edit_profile' %}">Edit Profile</a>
+            <a href="{% url 'edit_profile' %}"><button id="edit_profile_btn">Edit Profile</button></a>
+            <div class="logout-container">
+                    <a href="{% url 'post_list' %}"><button id="posts_btn">View All Posts</button></a>
+            </div>
+            <div class="logout-container">
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button id="logout_btn" type="submit">Logout</button>
+                </form>
+            </div>
         {% endif %}
-        <form action="{% url 'logout' %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit">Logout</button>
-          </form>
-    </div>
+    </div>    
 </div>
-
 {% endblock %}
+
+<style>
+    #owner{
+        text-align: center;
+    }
+    .profile-info{
+        text-align: center;
+    }
+    button{
+        border: 1sp;
+        border-radius: 10px;
+        padding: 8px;
+        background-color: #f64c72;
+        color: white;
+        font-weight: bold;
+    }
+    body{
+        background-color: #7949c1;
+        color: #FFFFFF;
+        text-align: center;
+    }
+    .logout-container{
+        margin-top: 20px;
+    }
+    #edit_profile_btn, #posts_btn{
+        background-color: #3739d7;
+    }
+    #follower-url{
+        color:aquamarine;
+        text-align: center;
+    }
+
+</style>
+
+

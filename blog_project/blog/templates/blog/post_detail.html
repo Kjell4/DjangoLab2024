@@ -1,6 +1,17 @@
-<h1>{{ post.title }}</h1>
-<p>{{ post.content }}</p>
-<p>Posted by {{ post.author.username }} on {{ post.created_at }}</p>
+
+<div class="post-itself">
+    <h1>{{ post.title }}</h1>
+    <p>{{ post.content }}</p>
+</div>
+
+<p>Posted by  <a href="{% url 'profile_detail' post.author.username %}">{{ post.author.username }}</a> on {{ post.created_at }}</p>
+
+{% if request.user == post.author %}
+    <form action="{% url 'post_delete' pk=post.pk %}" method="POST" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete Post</button>
+    </form>
+{% endif %}
 
 <h2>Comments</h2>
 <ul>
@@ -13,5 +24,39 @@
 <form method="POST">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Submit</button>
+    <button id="submit-btn" type="submit">Submit</button>
 </form>
+
+<style>
+   
+    body{
+        background-color: #7949c1;
+        color: #FFFFFF;
+        text-align: center;
+    }
+    .post-itself{
+        margin: auto;
+        color: rgb(208, 255, 0);
+        border: 2px solid white;
+        border-radius: 12px;
+        width:max-content;
+        padding: 10px;
+        font-family: cursive;
+    }
+    button{
+        border: 1sp;
+        border-radius: 10px;
+        padding: 8px;
+        background-color: #f64c72;
+        color: white;
+        font-weight: bold;
+    }
+    #submit-btn{
+        background-color: #3739d7;
+    }
+    a{
+        color: aquamarine;
+    }
+
+
+</style>
